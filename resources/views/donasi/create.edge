@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tambah Donasi - DonasiKu</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Figtree', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              DEFAULT: "#1b5e20", // Dark green
+              light: "#4c8c4a",
+              dark: "#003300",
+            },
+            secondary: {
+              DEFAULT: "#212121", // Black
+              light: "#484848",
+              dark: "#000000",
+            },
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="antialiased font-sans bg-gray-50">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-primary text-white shadow-md">
+      <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center">
+          <a href="/" class="text-2xl font-bold">DonasiKu</a>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <div class="relative" id="userDropdown">
+            <button type="button" class="flex items-center space-x-1 text-white hover:text-green-200" onclick="toggleDropdown()">
+              <span>{{ auth.user.fullName }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+              <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+              <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+              <form action="/logout" method="POST">
+                {{ csrfField() }}
+                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-1">
+      <!-- Sidebar -->
+      <aside class="bg-secondary text-white w-64 flex-shrink-0 hidden md:block">
+        <nav class="p-4">
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Menu</h2>
+            <ul class="space-y-2">
+              <li>
+                <a href="/dashboard" class="block py-2 px-4 rounded hover:bg-secondary-light">Dashboard</a>
+              </li>
+              <li>
+                <a href="/kategori" class="block py-2 px-4 rounded hover:bg-secondary-light">Kategori</a>
+              </li>
+              <li>
+                <a href="/kampanye" class="block py-2 px-4 rounded hover:bg-secondary-light">Kampanye</a>
+              </li>
+              <li>
+                <a href="/donasi" class="block py-2 px-4 rounded hover:bg-secondary-light bg-secondary-light">Donasi</a>
+              </li>
+              <li>
+                <a href="/donatur" class="block py-2 px-4 rounded hover:bg-secondary-light">Donatur</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Mobile menu button -->
+      <div class="md:hidden p-4">
+        <button type="button" class="text-gray-600 hover:text-gray-900 focus:outline-none" onclick="toggleMobileMenu()">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6">
+        @if(flashMessages.has('success'))
+          <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+            {{ flashMessages.get('success') }}
+          </div>
+        @endif
+
+        @if(flashMessages.has('error'))
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+            {{ flashMessages.get('error') }}
+          </div>
+        @endif
+
+        <!-- Page Title -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold text-gray-800">Tambah Donasi</h1>
+          <p class="text-gray-600">Tambahkan data donasi baru</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <form action="{{ route('donasi.store') }}" method="POST">
+            {{ csrfField() }}
+            
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">Data Donatur</h3>
+              
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Pilih Donatur</label>
+                <div class="flex space-x-4">
+                  <div>
+                    <input type="radio" id="existing_donatur" name="donatur_type" value="existing" checked
+                      onclick="toggleDonaturForm('existing')"
+                      class="mr-2">
+                    <label for="existing_donatur">Donatur yang sudah ada</label>
+                  </div>
+                  <div>
+                    <input type="radio" id="new_donatur" name="donatur_type" value="new"
+                      onclick="toggleDonaturForm('new')"
+                      class="mr-2">
+                    <label for="new_donatur">Donatur baru</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="existing_donatur_form" class="mb-4">
+                <label for="donatur_id" class="block text-gray-700 text-sm font-bold mb-2">Donatur</label>
+                <select id="donatur_id" name="donatur_id" 
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                  <option value="">Pilih Donatur</option>
+                  @each(donatur in donaturs)
+                    <option value="{{ donatur.id }}" {{ flashMessages.get('donatur_id') == donatur.id ? 'selected' : '' }}>
+                      {{ donatur.nama }} ({{ donatur.email }})
+                    </option>
+                  @end
+                </select>
+              </div>
+              
+              <div id="new_donatur_form" class="hidden">
+                <div class="mb-4">
+                  <label for="nama" class="block text-gray-700 text-sm font-bold mb-2">Nama Donatur</label>
+                  <input type="text" id="nama" name="nama" 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    placeholder="Masukkan nama donatur" value="{{ flashMessages.get('nama', '') }}">
+                </div>
+                
+                <div class="mb-4">
+                  <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email Donatur</label>
+                  <input type="email" id="email" name="email" 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    placeholder="Masukkan email donatur" value="{{ flashMessages.get('email', '') }}">
+                </div>
+                
+                <div class="mb-4">
+                  <label for="telepon" class="block text-gray-700 text-sm font-bold mb-2">Telepon Donatur (Opsional)</label>
+                  <input type="text" id="telepon" name="telepon" 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    placeholder="Masukkan nomor telepon" value="{{ flashMessages.get('telepon', '') }}">
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">Data Donasi</h3>
+              
+              <div class="mb-4">
+                <label for="kampanye_id" class="block text-gray-700 text-sm font-bold mb-2">Kampanye</label>
+                <select id="kampanye_id" name="kampanye_id" 
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                  <option value="">Pilih Kampanye</option>
+                  @each(kampanye in kampanyes)
+                    <option value="{{ kampanye.id }}" {{ flashMessages.get('kampanye_id') == kampanye.id ? 'selected' : '' }}
+                      data-sisa="{{ kampanye.$extras.sisaTarget }}">
+                      {{ kampanye.nama_kampanye }} - {{ kampanye.kategori.nama_kategori }} 
+                      (Sisa Target: Rp {{ kampanye.$extras.sisaTarget.toLocaleString('id-ID') }})
+                    </option>
+                  @end
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label for="jumlah" class="block text-gray-700 text-sm font-bold mb-2">Jumlah Donasi (Rp)</label>
+                <input type="number" id="jumlah" name="jumlah" 
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  placeholder="Masukkan jumlah donasi" min="1" value="{{ flashMessages.get('jumlah', '') }}">
+                <p id="jumlah_warning" class="text-red-500 text-xs italic mt-1 hidden">
+                  Jumlah donasi melebihi sisa target kampanye
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between mt-6">
+              <a href="{{ route('donasi.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Kembali
+              </a>
+              <button type="submit" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Simpan
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 hidden">
+    <div class="bg-secondary text-white w-64 h-full overflow-y-auto">
+      <div class="flex justify-end p-4">
+        <button type="button" onclick="toggleMobileMenu()" class="text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <nav class="p-4">
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-4">Menu</h2>
+          <ul class="space-y-2">
+            <li>
+              <a href="/dashboard" class="block py-2 px-4 rounded hover:bg-secondary-light">Dashboard</a>
+            </li>
+            <li>
+              <a href="/kategori" class="block py-2 px-4 rounded hover:bg-secondary-light">Kategori</a>
+            </li>
+            <li>
+              <a href="/kampanye" class="block py-2 px-4 rounded hover:bg-secondary-light">Kampanye</a>
+            </li>
+            <li>
+              <a href="/donasi" class="block py-2 px-4 rounded hover:bg-secondary-light bg-secondary-light">Donasi</a>
+            </li>
+            <li>
+              <a href="/donatur" class="block py-2 px-4 rounded hover:bg-secondary-light">Donatur</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleDropdown() {
+      const dropdown = document.getElementById('dropdownMenu');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      mobileMenu.classList.toggle('hidden');
+    }
+    
+    function toggleDonaturForm(type) {
+      const existingForm = document.getElementById('existing_donatur_form');
+      const newForm = document.getElementById('new_donatur_form');
+      
+      if (type === 'existing') {
+        existingForm.classList.remove('hidden');
+        newForm.classList.add('hidden');
+      } else {
+        existingForm.classList.add('hidden');
+        newForm.classList.remove('hidden');
+      }
+    }
+    
+    // Validate jumlah donasi doesn't exceed kampanye sisa target
+    document.getElementById('jumlah').addEventListener('input', validateJumlah);
+    document.getElementById('kampanye_id').addEventListener('change', validateJumlah);
+    
+    function validateJumlah() {
+      const jumlahInput = document.getElementById('jumlah');
+      const kampanyeSelect = document.getElementById('kampanye_id');
+      const warning = document.getElementById('jumlah_warning');
+      
+      if (kampanyeSelect.value && jumlahInput.value) {
+        const selectedOption = kampanyeSelect.options[kampanyeSelect.selectedIndex];
+        const sisaTarget = parseInt(selectedOption.dataset.sisa);
+        const jumlah = parseInt(jumlahInput.value);
+        
+        if (jumlah > sisaTarget) {
+          warning.classList.remove('hidden');
+        } else {
+          warning.classList.add('hidden');
+        }
+      } else {
+        warning.classList.add('hidden');
+      }
+    }
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('dropdownMenu');
+      const userDropdown = document.getElementById('userDropdown');
+      
+      if (!dropdown.contains(event.target) && !userDropdown.contains(event.target) && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
