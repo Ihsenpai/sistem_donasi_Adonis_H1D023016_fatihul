@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kategori - DonasiKu</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Figtree', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              DEFAULT: "#1b5e20", // Dark green
+              light: "#4c8c4a",
+              dark: "#003300",
+            },
+            secondary: {
+              DEFAULT: "#212121", // Black
+              light: "#484848",
+              dark: "#000000",
+            },
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="antialiased font-sans bg-gray-50">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-primary text-white shadow-md">
+      <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center">
+          <a href="/" class="text-2xl font-bold">DonasiKu</a>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <div class="relative" id="userDropdown">
+            <button type="button" class="flex items-center space-x-1 text-white hover:text-green-200" onclick="toggleDropdown()">
+              <span>{{ auth.user.fullName }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+              <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+              <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+              <form action="/logout" method="POST">
+                {{ csrfField() }}
+                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex flex-1">
+      <!-- Sidebar -->
+      <aside class="bg-secondary text-white w-64 flex-shrink-0 hidden md:block">
+        <nav class="p-4">
+          <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Menu</h2>
+            <ul class="space-y-2">
+              <li>
+                <a href="/dashboard" class="block py-2 px-4 rounded hover:bg-secondary-light">Dashboard</a>
+              </li>
+              <li>
+                <a href="/kategori" class="block py-2 px-4 rounded hover:bg-secondary-light bg-secondary-light">Kategori</a>
+              </li>
+              <li>
+                <a href="/kampanye" class="block py-2 px-4 rounded hover:bg-secondary-light">Kampanye</a>
+              </li>
+              <li>
+                <a href="/donasi" class="block py-2 px-4 rounded hover:bg-secondary-light">Donasi</a>
+              </li>
+              <li>
+                <a href="/donatur" class="block py-2 px-4 rounded hover:bg-secondary-light">Donatur</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Mobile menu button -->
+      <div class="md:hidden p-4">
+        <button type="button" class="text-gray-600 hover:text-gray-900 focus:outline-none" onclick="toggleMobileMenu()">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6">
+        @if(flashMessages.has('success'))
+          <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+            {{ flashMessages.get('success') }}
+          </div>
+        @endif
+
+        @if(flashMessages.has('error'))
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+            {{ flashMessages.get('error') }}
+          </div>
+        @endif
+
+        <!-- Page Title -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold text-gray-800">Kategori</h1>
+          <p class="text-gray-600">Kelola kategori kampanye donasi</p>
+        </div>
+
+        <!-- Kategori Management UI -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Daftar Kategori</h2>
+            <a href="{{ route('kategori.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark">
+              Tambah Kategori
+            </a>
+          </div>
+
+          <!-- Kategori Table -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                  <th class="py-3 px-6 text-left">ID</th>
+                  <th class="py-3 px-6 text-left">Nama Kategori</th>
+                  <th class="py-3 px-6 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-600 text-sm">
+                @if(kategoris.length === 0)
+                  <tr class="border-b border-gray-200">
+                    <td colspan="3" class="py-3 px-6 text-center">Tidak ada data kategori</td>
+                  </tr>
+                @else
+                  @each(kategori in kategoris)
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                      <td class="py-3 px-6 text-left">{{ kategori.id }}</td>
+                      <td class="py-3 px-6 text-left">{{ kategori.nama_kategori }}</td>
+                      <td class="py-3 px-6 text-center">
+                        <div class="flex item-center justify-center">
+                          <a href="{{ route('kategori.edit', [kategori.id]) }}" class="transform hover:text-primary hover:scale-110 mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                          </a>
+                          <button type="button" onclick="confirmDelete({{ kategori.id }})" class="transform hover:text-red-500 hover:scale-110">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  @end
+                @endif
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+      <!-- Footer -->
+    <footer class="bg-primary text-white py-4">
+      <div class="container mx-auto px-4 text-center">
+        <p>© 2025 DonasiKu. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 hidden">
+    <div class="bg-secondary text-white w-64 h-full overflow-y-auto">
+      <div class="flex justify-end p-4">
+        <button type="button" onclick="toggleMobileMenu()" class="text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <nav class="p-4">
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-4">Menu</h2>
+          <ul class="space-y-2">
+            <li>
+              <a href="/dashboard" class="block py-2 px-4 rounded hover:bg-secondary-light">Dashboard</a>
+            </li>
+            <li>
+              <a href="/kategori" class="block py-2 px-4 rounded hover:bg-secondary-light bg-secondary-light">Kategori</a>
+            </li>
+            <li>
+              <a href="/kampanye" class="block py-2 px-4 rounded hover:bg-secondary-light">Kampanye</a>
+            </li>
+            <li>
+              <a href="/donasi" class="block py-2 px-4 rounded hover:bg-secondary-light">Donasi</a>
+            </li>
+            <li>
+              <a href="/donatur" class="block py-2 px-4 rounded hover:bg-secondary-light">Donatur</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 hidden flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Konfirmasi Hapus</h3>
+      <p class="text-gray-600 mb-4">
+        Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.
+      </p>
+      
+      <form id="deleteForm" method="POST">
+        {{ csrfField() }}
+        <input type="hidden" name="_method" value="DELETE">
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+            Batal
+          </button>
+          <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            Hapus
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleDropdown() {
+      const dropdown = document.getElementById('dropdownMenu');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      mobileMenu.classList.toggle('hidden');
+    }
+    
+    function confirmDelete(id) {
+      const modal = document.getElementById('deleteModal');
+      const form = document.getElementById('deleteForm');
+      
+      form.action = `/kategori/${id}`;
+      modal.classList.remove('hidden');
+    }
+    
+    function closeDeleteModal() {
+      const modal = document.getElementById('deleteModal');
+      modal.classList.add('hidden');
+    }
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('dropdownMenu');
+      const userDropdown = document.getElementById('userDropdown');
+      
+      if (!dropdown.contains(event.target) && !userDropdown.contains(event.target) && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
